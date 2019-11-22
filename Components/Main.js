@@ -270,7 +270,8 @@ export default class Encrypter extends React.Component {
                   height: 50,
                   paddingTop: 15,
                   color: 'white',
-                  elevation: 1
+                  elevation: 1,
+                  borderRadius: 20
                 }}
               >
                 Upload and Encode to an Image
@@ -460,7 +461,8 @@ export default class Encrypter extends React.Component {
                   height: 50,
                   paddingTop: 15,
                   color: 'white',
-                  elevation: 1
+                  elevation: 1,
+                  borderRadius: 20
                 }}
               >
                 Upload and Decode

@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { AppLoading } from 'expo';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
-
+import { Asset } from 'expo-asset';
 import Encrypter from './Components/Main';
 import { Subtitle, Header, Body, Title, Toast } from 'native-base';
 import * as Font from 'expo-font';
@@ -21,6 +21,16 @@ const X_HEIGHT = 812;
 const XSMAX_WIDTH = 414;
 const XSMAX_HEIGHT = 896;
 const { height, width } = Dimensions.get('window');
+
+function cacheImages(images) {
+  return images.map(image => {
+    if (typeof image === 'string') {
+      return Image.prefetch(image);
+    } else {
+      return Asset.fromModule(image).downloadAsync();
+    }
+  });
+}
 
 const isIPhoneX = () =>
   Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS
@@ -45,7 +55,17 @@ export default class App extends React.Component {
       Roboto_medium: require('native-base/Fonts/Roboto_medium.ttf'),
       ...Ionicons.font
     });
+    this._loadAssetsAsync();
     this.setState({ isReady: true });
+  }
+  async _loadAssetsAsync() {
+    const imageAssets = cacheImages([
+      require('./assets/preview.png'),
+      require('./assets/jiit.png'),
+      require('./assets/wait.gif')
+    ]);
+
+    await Promise.all([...imageAssets]);
   }
   render() {
     if (!this.state.isReady) {
