@@ -72,36 +72,44 @@ export default class App extends React.Component {
       return <AppLoading />;
     }
     return (
-      <View style={styles.container}>
-        <Header
-          style={{
-            backgroundColor: '#f1f1f1'
-          }}
-        >
-          <Body
+      <View
+        style={{
+          flex: 1
+        }}
+      >
+        <StatusBar backgroundColor='#f1f1f1' barStyle='dark-content' />
+        <View style={styles.container}>
+          <Header
             style={{
-              justifyContent: 'center',
-              alignItems: 'center'
+              backgroundColor: '#f1f1f1',
+              height: 50
             }}
           >
-            <Title
+            <Body
               style={{
-                color: 'black'
+                justifyContent: 'center',
+                alignItems: 'center'
               }}
             >
-              Steganography
-            </Title>
-            <Subtitle
-              style={{
-                color: 'black'
-              }}
-            >
-              An Information Security Project
-            </Subtitle>
-          </Body>
-        </Header>
+              <Title
+                style={{
+                  color: 'black'
+                }}
+              >
+                Steganography
+              </Title>
+              <Subtitle
+                style={{
+                  color: 'black'
+                }}
+              >
+                An Information Security Project
+              </Subtitle>
+            </Body>
+          </Header>
 
-        <Encrypter />
+          <Encrypter />
+        </View>
       </View>
     );
   }
