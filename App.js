@@ -6,7 +6,8 @@ import {
   StatusBar,
   Dimensions,
   Text,
-  TouchableOpacity
+  TouchableOpacity,
+  KeyboardAvoidingView
 } from 'react-native';
 import { AppLoading } from 'expo';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
@@ -14,6 +15,7 @@ import { Asset } from 'expo-asset';
 import Encrypter from './Components/Main';
 import { Subtitle, Header, Body, Title, Toast } from 'native-base';
 import * as Font from 'expo-font';
+const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 40;
 
 const X_WIDTH = 375;
 const X_HEIGHT = 812;
@@ -39,7 +41,7 @@ const isIPhoneX = () =>
     : false;
 
 const StatusBarHeight = Platform.select({
-  ios: isIPhoneX() ? 44 : 20,
+  ios: 0,
   android: StatusBar.currentHeight,
   default: 0
 });
@@ -79,34 +81,38 @@ export default class App extends React.Component {
       >
         <StatusBar backgroundColor='#f1f1f1' barStyle='dark-content' />
         <View style={styles.container}>
-          <Header
+          <View
             style={{
               backgroundColor: '#f1f1f1',
-              height: 50
+              height: 50,
+              zIndex: 100
             }}
           >
             <Body
               style={{
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                zIndex: 100
               }}
             >
               <Title
                 style={{
-                  color: 'black'
+                  color: 'black',
+                  zIndex: 100
                 }}
               >
                 Steganography
               </Title>
               <Subtitle
                 style={{
-                  color: 'black'
+                  color: 'black',
+                  zIndex: 100
                 }}
               >
                 An Information Security Project
               </Subtitle>
             </Body>
-          </Header>
+          </View>
 
           <Encrypter />
         </View>
@@ -119,7 +125,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-
     marginTop: StatusBarHeight
   }
 });

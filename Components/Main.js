@@ -9,7 +9,10 @@ import {
   TextInput,
   Dimensions,
   TouchableOpacity,
-  ImageBackground
+  ImageBackground,
+  Clipboard,
+  Platform,
+  KeyboardAvoidingView
 } from 'react-native';
 import { EvilIcons, Ionicons } from '@expo/vector-icons';
 
@@ -22,9 +25,11 @@ import * as MediaLibrary from 'expo-media-library';
 import jiitLogo from '../assets/jiit.png';
 import imagePlaceholder from '../assets/preview.png';
 import wait from '../assets/wait.gif';
+import * as ImageManipulator from 'expo-image-manipulator';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
+const keyboardVerticalOffset = Platform.OS === 'ios' ? 40 : 40;
 
 export default class Encrypter extends React.Component {
   state = {
@@ -37,7 +42,9 @@ export default class Encrypter extends React.Component {
     mainImage: false,
     base64send: null,
     b64: null,
-    loading: false
+    loading: false,
+    copied: false,
+    nbs64: ''
   };
   componentDidMount() {
     this.getPermissionAsync();
@@ -59,7 +66,11 @@ export default class Encrypter extends React.Component {
     });
 
     if (!result.cancelled) {
-      this.setState({ mainImage: true, image: result.uri });
+      let nbs64 = await FileSystem.readAsStringAsync(result.uri, {
+        encoding: 'base64'
+      });
+
+      this.setState({ mainImage: true, image: result.uri, nbs64 });
     }
   };
 
@@ -73,12 +84,11 @@ export default class Encrypter extends React.Component {
     // formData.append("image", this.state.file)
 
     try {
-      let res = await axios.post('http://301eff05.ngrok.io/encode', formData);
+      let res = await axios.post('http://5cf99b89.ngrok.io/encode', formData);
       this.setState({
         b64: `data:image/png;base64,${res.data.image}`,
-        data: res.data.key,
-        image: `data:image/png;base64,${res.data.image}`,
-        wb64: res.data.image
+        wb64: res.data.image,
+        key: res.data.key
       });
 
       // json.qr is base64 string "data:image/png;base64,..."
@@ -86,16 +96,14 @@ export default class Encrypter extends React.Component {
       await FileSystem.writeAsStringAsync(
         FileSystem.documentDirectory + 'temp.png',
         `${res.data.image}`,
-        {
-          encoding: 'base64'
-        }
+        { encoding: 'base64' }
       );
+
       await MediaLibrary.requestPermissionsAsync();
       await MediaLibrary.createAssetAsync(
         FileSystem.documentDirectory + 'temp.png'
       );
       this.setState({
-        type: 'decoding',
         loading: false
       });
     } catch (err) {
@@ -117,15 +125,18 @@ export default class Encrypter extends React.Component {
     // this.setState({
     //     base64send: file
     // })
-
+    let bb64 = this.state.nbs64.replace('data:image/png;base64,', '');
+    console.log(bb64.substring(0, 100));
     let formData = new FormData();
     formData.append('key', this.state.text);
     formData.append('image', this.state.wb64);
 
     try {
-      let res = await axios.post('http://301eff05.ngrok.io/decode', formData);
+      let res = await axios.post('http://5cf99b89.ngrok.io/decode', formData);
+      console.log(res.data.text);
+
       this.setState({
-        data: res.data.key,
+        data: res.data.text,
         image: null,
         loading: false
       });
@@ -176,6 +187,148 @@ export default class Encrypter extends React.Component {
             justifyContent: 'center'
           }}
         >
+          <KeyboardAvoidingView
+            behavior='position'
+            keyboardVerticalOffset={keyboardVerticalOffset}
+          >
+            <View
+              style={{
+                backgroundColor: '#fff',
+                height: HEIGHT - 100,
+                width: WIDTH - 50,
+                borderRadius: 20,
+                alignItems: 'center',
+                justifyContent: 'space-around',
+                position: 'relative'
+              }}
+            >
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: 24
+                }}
+              >
+                Patient
+              </Text>
+              <TouchableOpacity
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  flexDirection: 'row',
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+                onPress={() => {
+                  this.setState({
+                    text: null,
+                    data: null,
+                    type: 'encoding',
+                    image: false,
+                    imageSelect: null,
+                    isUploading: false,
+                    mainImage: false,
+                    base64send: null,
+                    b64: null,
+                    loading: false,
+                    key: null,
+                    wb64: null
+                  });
+                  console.log('State resetted!');
+                }}
+              >
+                <Text
+                  style={{
+                    color: '#4286f4'
+                  }}
+                >
+                  New
+                </Text>
+                <EvilIcons name='refresh' size={32} color='#4286f4' />
+              </TouchableOpacity>
+              <Image
+                source={jiitLogo}
+                style={{
+                  width: 100,
+                  height: 150,
+                  resizeMode: 'contain',
+                  borderRadius: 20
+                }}
+              />
+              <TextInput
+                placeholder='Enter Disease Name'
+                style={{
+                  height: 40,
+                  width: WIDTH - 100,
+                  borderWidth: 0,
+                  textAlign: 'center',
+                  color: 'black',
+                  backgroundColor: '#fff',
+                  borderBottomColor: '#d9d9d9',
+                  borderBottomWidth: 2
+                }}
+                onChangeText={text => this.setState({ text: text })}
+              />
+              <TouchableOpacity
+                style={{
+                  justifyContent: 'center',
+                  alignItems: 'center'
+                }}
+                onPress={() => this.encode()}
+              >
+                <Text
+                  style={{
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    width: WIDTH - 100,
+                    fontWeight: 'bold',
+                    fontSize: 15,
+                    backgroundColor: '#404040',
+                    height: 50,
+                    paddingTop: 15,
+                    color: 'white',
+                    elevation: 1,
+                    borderRadius: 20
+                  }}
+                >
+                  Upload Disease
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() => {
+                  this.setState({
+                    type: 'decoding'
+                  });
+                }}
+              >
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: 20,
+                    textAlign: 'center',
+                    width: 350,
+                    color: '#4286f4'
+                  }}
+                >
+                  Click To Change to Doctor
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      );
+    }
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <KeyboardAvoidingView
+          behavior='position'
+          keyboardVerticalOffset={keyboardVerticalOffset}
+        >
           <View
             style={{
               backgroundColor: '#fff',
@@ -193,7 +346,7 @@ export default class Encrypter extends React.Component {
                 fontSize: 24
               }}
             >
-              Encoding
+              Doctor
             </Text>
             <TouchableOpacity
               style={{
@@ -238,7 +391,7 @@ export default class Encrypter extends React.Component {
               }}
             />
             <TextInput
-              placeholder='Enter Text to Encrypt'
+              placeholder='Enter Medicine Name'
               style={{
                 height: 40,
                 width: WIDTH - 100,
@@ -251,38 +404,70 @@ export default class Encrypter extends React.Component {
               }}
               onChangeText={text => this.setState({ text: text })}
             />
-
             <TouchableOpacity
               style={{
-                justifyContent: 'center',
-                alignItems: 'center'
+                width: WIDTH - 100,
+                height: 150,
+                justifyContent: 'flex-start',
+                alignItems: 'center',
+                opacity: 1,
+                borderRadius: 20,
+                position: 'relative'
               }}
-              onPress={() => this.encode()}
+              onPress={() => this._pickImage()}
             >
               <Text
                 style={{
-                  alignItems: 'center',
+                  color: 'black',
+                  backgroundColor: '#ffffff99',
+                  fontFamily: 'Roboto',
                   textAlign: 'center',
                   width: WIDTH - 100,
+                  height: 40,
+                  textAlignVertical: 'center',
                   fontWeight: 'bold',
-                  fontSize: 15,
-                  backgroundColor: '#404040',
-                  height: 50,
-                  paddingTop: 15,
-                  color: 'white',
-                  elevation: 1,
-                  borderRadius: 20
+                  opacity: 1
                 }}
               >
-                Upload and Encode to an Image
+                {this.state.image
+                  ? 'Tap to choose another Image'
+                  : 'Tap Pick an Image from Gallery'}
               </Text>
             </TouchableOpacity>
 
+            {this.state.key && (
+              <TouchableOpacity onPress={() => this.decode()}>
+                <Text
+                  style={{
+                    alignItems: 'center',
+                    textAlign: 'center',
+                    width: WIDTH - 100,
+                    fontWeight: 'bold',
+                    fontSize: 15,
+                    backgroundColor: '#404040',
+                    height: 50,
+                    paddingTop: 15,
+                    color: 'white',
+                    elevation: 1,
+                    borderRadius: 20
+                  }}
+                >
+                  Upload Medicine Name
+                </Text>
+              </TouchableOpacity>
+            )}
+
             <TouchableOpacity
               onPress={() => {
-                this.setState({
-                  type: 'decoding'
-                });
+                if (this.state.type == 'encoding') {
+                  this.setState({
+                    type: 'decoding'
+                  });
+                } else {
+                  this.setState({
+                    type: 'encoding'
+                  });
+                }
               }}
             >
               <Text
@@ -294,208 +479,11 @@ export default class Encrypter extends React.Component {
                   color: '#4286f4'
                 }}
               >
-                Click To Decode Image
+                Click To Change for Patient
               </Text>
             </TouchableOpacity>
           </View>
-        </View>
-      );
-    }
-    return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center'
-        }}
-      >
-        <View
-          style={{
-            backgroundColor: '#fff',
-            height: HEIGHT - 100,
-            width: WIDTH - 50,
-            borderRadius: 20,
-            alignItems: 'center',
-            justifyContent: 'space-around',
-            position: 'relative'
-          }}
-        >
-          <Text
-            style={{
-              fontWeight: 'bold',
-              fontSize: 24
-            }}
-          >
-            Decoding
-          </Text>
-          <TouchableOpacity
-            style={{
-              position: 'absolute',
-              right: 10,
-              flexDirection: 'row',
-              justifyContent: 'center',
-              alignItems: 'center'
-            }}
-            onPress={() => {
-              this.setState({
-                text: null,
-                data: null,
-                type: 'encoding',
-                image: false,
-                imageSelect: null,
-                isUploading: false,
-                mainImage: false,
-                base64send: null,
-                b64: null,
-                loading: false
-              });
-              console.log('State resetted!');
-            }}
-          >
-            <Text
-              style={{
-                color: '#4286f4'
-              }}
-            >
-              New
-            </Text>
-            <EvilIcons name='refresh' size={32} color='#4286f4' />
-          </TouchableOpacity>
-          <Image
-            source={jiitLogo}
-            style={{
-              width: 100,
-              height: 150,
-              resizeMode: 'contain',
-              borderRadius: 20
-            }}
-          />
-          <TextInput
-            placeholder='Enter Secret Key'
-            style={{
-              height: 40,
-              width: WIDTH - 100,
-              borderWidth: 0,
-              textAlign: 'center',
-              color: 'black',
-              backgroundColor: '#fff',
-              borderBottomColor: '#d9d9d9',
-              borderBottomWidth: 2
-            }}
-            onChangeText={text => this.setState({ text: text })}
-          />
-          <TouchableOpacity
-            style={{
-              width: WIDTH - 100,
-              height: 150,
-              justifyContent: 'flex-start',
-              alignItems: 'center',
-              opacity: 1,
-              borderRadius: 20,
-              position: 'relative'
-            }}
-            onPress={() => this._pickImage()}
-          >
-            {this.state.image && (
-              <Image
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'absolute',
-                  borderRadius: 20,
-                  opacity: 0.5
-                }}
-                source={{ uri: this.state.image }}
-              ></Image>
-            )}
-            {!this.state.image && (
-              <Image
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'absolute',
-                  borderRadius: 20,
-                  opacity: 0.5
-                }}
-                source={imagePlaceholder}
-              ></Image>
-            )}
-
-            <Text
-              style={{
-                color: 'black',
-                backgroundColor: '#ffffff99',
-                fontFamily: 'Roboto',
-                textAlign: 'center',
-                width: WIDTH - 100,
-                height: 40,
-                textAlignVertical: 'center',
-                fontWeight: 'bold',
-                opacity: 1
-              }}
-            >
-              {this.state.image
-                ? 'Tap to choose another Image'
-                : 'Tap Pick an Image from Camera Roll'}
-            </Text>
-          </TouchableOpacity>
-          {this.state.data && (
-            <Text
-              style={{
-                textAlign: 'center',
-                fontSize: 22,
-                fontWeight: 'bold'
-              }}
-            >{`Decrypted String is : ${this.state.data}`}</Text>
-          )}
-          {!this.state.data && (
-            <TouchableOpacity onPress={() => this.decode()}>
-              <Text
-                style={{
-                  alignItems: 'center',
-                  textAlign: 'center',
-                  width: WIDTH - 100,
-                  fontWeight: 'bold',
-                  fontSize: 15,
-                  backgroundColor: '#404040',
-                  height: 50,
-                  paddingTop: 15,
-                  color: 'white',
-                  elevation: 1,
-                  borderRadius: 20
-                }}
-              >
-                Upload and Decode
-              </Text>
-            </TouchableOpacity>
-          )}
-
-          <TouchableOpacity
-            onPress={() => {
-              if (this.state.type == 'encoding') {
-                this.setState({
-                  type: 'decoding'
-                });
-              } else {
-                this.setState({
-                  type: 'encoding'
-                });
-              }
-            }}
-          >
-            <Text
-              style={{
-                fontWeight: 'bold',
-                fontSize: 20,
-                textAlign: 'center',
-                width: 350,
-                color: '#4286f4'
-              }}
-            >
-              Click To Encode Image
-            </Text>
-          </TouchableOpacity>
-        </View>
+        </KeyboardAvoidingView>
       </View>
     );
   }
