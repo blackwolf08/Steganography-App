@@ -404,58 +404,26 @@ export default class Encrypter extends React.Component {
               }}
               onChangeText={text => this.setState({ text: text })}
             />
-            <TouchableOpacity
-              style={{
-                width: WIDTH - 100,
-                height: 150,
-                justifyContent: 'flex-start',
-                alignItems: 'center',
-                opacity: 1,
-                borderRadius: 20,
-                position: 'relative'
-              }}
-              onPress={() => this._pickImage()}
-            >
+
+            <TouchableOpacity onPress={() => this.decode()}>
               <Text
                 style={{
-                  color: 'black',
-                  backgroundColor: '#ffffff99',
-                  fontFamily: 'Roboto',
+                  alignItems: 'center',
                   textAlign: 'center',
                   width: WIDTH - 100,
-                  height: 40,
-                  textAlignVertical: 'center',
                   fontWeight: 'bold',
-                  opacity: 1
+                  fontSize: 15,
+                  backgroundColor: '#404040',
+                  height: 50,
+                  paddingTop: 15,
+                  color: 'white',
+                  elevation: 1,
+                  borderRadius: 20
                 }}
               >
-                {this.state.image
-                  ? 'Tap to choose another Image'
-                  : 'Tap Pick an Image from Gallery'}
+                Upload Medicine Name
               </Text>
             </TouchableOpacity>
-
-            {this.state.key && (
-              <TouchableOpacity onPress={() => this.decode()}>
-                <Text
-                  style={{
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    width: WIDTH - 100,
-                    fontWeight: 'bold',
-                    fontSize: 15,
-                    backgroundColor: '#404040',
-                    height: 50,
-                    paddingTop: 15,
-                    color: 'white',
-                    elevation: 1,
-                    borderRadius: 20
-                  }}
-                >
-                  Upload Medicine Name
-                </Text>
-              </TouchableOpacity>
-            )}
 
             <TouchableOpacity
               onPress={() => {

@@ -101,16 +101,8 @@ export default class App extends React.Component {
                   zIndex: 100
                 }}
               >
-                Steganography
+                Minor Project
               </Title>
-              <Subtitle
-                style={{
-                  color: 'black',
-                  zIndex: 100
-                }}
-              >
-                An Information Security Project
-              </Subtitle>
             </Body>
           </View>
 
