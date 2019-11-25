@@ -6,7 +6,8 @@ import {
   StatusBar,
   Dimensions,
   Text,
-  TouchableOpacity
+  TouchableOpacity,
+  KeyboardAvoidingView
 } from 'react-native';
 import { AppLoading } from 'expo';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
@@ -14,13 +15,6 @@ import { Asset } from 'expo-asset';
 import Encrypter from './Components/Main';
 import { Subtitle, Header, Body, Title, Toast } from 'native-base';
 import * as Font from 'expo-font';
-
-const X_WIDTH = 375;
-const X_HEIGHT = 812;
-
-const XSMAX_WIDTH = 414;
-const XSMAX_HEIGHT = 896;
-const { height, width } = Dimensions.get('window');
 
 function cacheImages(images) {
   return images.map(image => {
@@ -32,14 +26,8 @@ function cacheImages(images) {
   });
 }
 
-const isIPhoneX = () =>
-  Platform.OS === 'ios' && !Platform.isPad && !Platform.isTVOS
-    ? (width === X_WIDTH && height === X_HEIGHT) ||
-      (width === XSMAX_WIDTH && height === XSMAX_HEIGHT)
-    : false;
-
 const StatusBarHeight = Platform.select({
-  ios: isIPhoneX() ? 44 : 20,
+  ios: 0,
   android: StatusBar.currentHeight,
   default: 0
 });
@@ -77,36 +65,40 @@ export default class App extends React.Component {
           flex: 1
         }}
       >
-        <StatusBar backgroundColor='#f1f1f1' barStyle='dark-content' />
+        <StatusBar barStyle='dark-content' />
         <View style={styles.container}>
-          <Header
+          <View
             style={{
               backgroundColor: '#f1f1f1',
-              height: 50
+              height: 50,
+              zIndex: 100
             }}
           >
             <Body
               style={{
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                zIndex: 100
               }}
             >
               <Title
                 style={{
-                  color: 'black'
+                  color: 'black',
+                  zIndex: 100
                 }}
               >
-                Steganography
+                Diabetic Retinopathy
               </Title>
               <Subtitle
                 style={{
-                  color: 'black'
+                  color: 'black',
+                  zIndex: 100
                 }}
               >
-                An Information Security Project
+                Minor Project
               </Subtitle>
             </Body>
-          </Header>
+          </View>
 
           <Encrypter />
         </View>
@@ -119,7 +111,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#fff',
-
     marginTop: StatusBarHeight
   }
 });
