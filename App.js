@@ -7,14 +7,20 @@ import {
   Dimensions,
   Text,
   TouchableOpacity,
-  KeyboardAvoidingView
+  KeyboardAvoidingView,
+  Image
 } from 'react-native';
 import { AppLoading } from 'expo';
 import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
 import Encrypter from './Components/Main';
-import { Subtitle, Header, Body, Title, Toast } from 'native-base';
+import Details from './Components/Details';
+import { Subtitle, Header, Body, Title, Toast, Left } from 'native-base';
 import * as Font from 'expo-font';
+import jiitLogo from './assets/jiit.png';
+import cancer from './assets/cancer.jpg';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
 
 function cacheImages(images) {
   return images.map(image => {
@@ -32,7 +38,36 @@ const StatusBarHeight = Platform.select({
   default: 0
 });
 
-export default class App extends React.Component {
+class App extends React.Component {
+  static navigationOptions = {
+    title: 'Diabetic Retinopathy',
+
+    headerTitleStyle: {
+      fontWeight: 'bold'
+    },
+    headerRight: () => (
+      <Image
+        source={cancer}
+        style={{
+          width: 40,
+          height: 40,
+          resizeMode: 'contain',
+          borderRadius: 20
+        }}
+      />
+    ),
+    headerLeft: () => (
+      <Image
+        source={jiitLogo}
+        style={{
+          width: 40,
+          height: 40,
+          resizeMode: 'contain',
+          borderRadius: 20
+        }}
+      />
+    )
+  };
   state = {
     isReady: false
   };
@@ -50,6 +85,7 @@ export default class App extends React.Component {
     const imageAssets = cacheImages([
       require('./assets/preview.png'),
       require('./assets/jiit.png'),
+      require('./assets/cancer.jpg'),
       require('./assets/wait.gif')
     ]);
 
@@ -67,40 +103,7 @@ export default class App extends React.Component {
       >
         <StatusBar barStyle='dark-content' />
         <View style={styles.container}>
-          <View
-            style={{
-              backgroundColor: '#f1f1f1',
-              height: 50,
-              zIndex: 100
-            }}
-          >
-            <Body
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 100
-              }}
-            >
-              <Title
-                style={{
-                  color: 'black',
-                  zIndex: 100
-                }}
-              >
-                Diabetic Retinopathy
-              </Title>
-              <Subtitle
-                style={{
-                  color: 'black',
-                  zIndex: 100
-                }}
-              >
-                Minor Project
-              </Subtitle>
-            </Body>
-          </View>
-
-          <Encrypter />
+          <Encrypter {...this.props} />
         </View>
       </View>
     );
@@ -114,3 +117,13 @@ const styles = StyleSheet.create({
     marginTop: StatusBarHeight
   }
 });
+
+const AppNavigator = createStackNavigator(
+  { Home: App, Details: Details },
+  {
+    headerLayoutPreset: 'center',
+    initialRouteName: 'Home'
+  }
+);
+
+export default createAppContainer(AppNavigator);

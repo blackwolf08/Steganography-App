@@ -24,7 +24,6 @@ import Constants from 'expo-constants';
 import * as FileSystem from 'expo-file-system';
 import axios from 'axios';
 import * as MediaLibrary from 'expo-media-library';
-import jiitLogo from '../assets/jiit.png';
 import imagePlaceholder from '../assets/preview.png';
 import wait from '../assets/wait.gif';
 import { BarCodeScanner } from 'expo-barcode-scanner';
@@ -47,8 +46,17 @@ export default class Encrypter extends React.Component {
     loading: false,
     hasCameraPermission: null,
     scan: false,
-    img: null
+    img: null,
+    report: null
   };
+
+  _handlePressButtonAsync = async () => {
+    this.props.navigation.navigate('Details', {
+      uri: `${this.state.url}/getRecord?patient_name=${this.state.text}`,
+      name: this.state.text
+    });
+  };
+
   componentDidMount() {
     this.getPermissionAsync();
     this._requestCameraPermission();
@@ -84,12 +92,13 @@ export default class Encrypter extends React.Component {
         encoding: 'base64'
       });
       img = img.replace('data:image/jpeg;base64,', '');
+      img = img.replace('data:image/jpg;base64,', '');
       this.setState({ mainImage: true, image: result.uri, img });
     }
   };
 
   getReport = async () => {
-    console.log('--------Decoding!--------');
+    console.log('--------Getting Report!--------');
     this.setState({
       loading: true
     });
@@ -105,11 +114,22 @@ export default class Encrypter extends React.Component {
 
     try {
       let res = await axios.post(`${this.state.url}/detect`, formData);
+
       this.setState({
-        data: `${res.data.is_cancer} ${res.data.prob}`,
-        image: null,
+        data: parseFloat(`${res.data.prob}`),
+        is_cancer: `${res.data.is_cancer}`,
         loading: false
       });
+
+      // REQ Testing
+
+      // setTimeout(() => {
+      //   this.setState({
+      //     data: `0.8099838393`,
+      //     is_cancer: `True`,
+      //     loading: false
+      //   });
+      // }, 4000);
     } catch (err) {
       alert('Decoding Image Failed!');
       this.setState({
@@ -172,35 +192,52 @@ export default class Encrypter extends React.Component {
                 position: 'relative'
               }}
             >
-              <Text
-                style={{
-                  fontWeight: 'bold',
-                  fontSize: 24
-                }}
-              ></Text>
-              <Image
-                source={jiitLogo}
-                style={{
-                  width: 100,
-                  height: 150,
-                  resizeMode: 'contain',
-                  borderRadius: 20
-                }}
-              />
-              <TextInput
-                placeholder='Enter your Name'
-                style={{
-                  height: 40,
-                  width: WIDTH - 100,
-                  borderWidth: 0,
-                  textAlign: 'center',
-                  color: 'black',
-                  backgroundColor: '#fff',
-                  borderBottomColor: '#d9d9d9',
-                  borderBottomWidth: 2
-                }}
-                onChangeText={text => this.setState({ text: text })}
-              />
+              {!this.state.data && (
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: 24,
+                    textAlign: 'center'
+                  }}
+                >
+                  Upload your Angiography Image
+                </Text>
+              )}
+              {this.state.data && (
+                <Text
+                  style={{
+                    fontWeight: 'bold',
+                    fontSize: 24,
+                    textAlign: 'center'
+                  }}
+                >
+                  Report
+                </Text>
+              )}
+
+              {!this.state.data && (
+                <TextInput
+                  placeholder='Enter your Name'
+                  style={{
+                    height: 50,
+                    width: WIDTH - 100,
+                    borderWidth: 0,
+                    textAlign: 'center',
+                    color: 'black',
+                    backgroundColor: '#fff',
+                    borderBottomColor: '#d9d9d9',
+                    borderBottomWidth: 1,
+                    shadowColor: 'black',
+                    shadowOpacity: 0.26,
+                    shadowOffset: { width: 0, height: 4 },
+                    shadowRadius: 10,
+                    elevation: 3,
+                    backgroundColor: '#fff',
+                    borderRadius: 5
+                  }}
+                  onChangeText={text => this.setState({ text: text })}
+                />
+              )}
               <TouchableOpacity
                 style={{
                   width: WIDTH - 100,
@@ -238,62 +275,160 @@ export default class Encrypter extends React.Component {
                   ></Image>
                 )}
 
-                <Text
-                  style={{
-                    color: 'black',
-                    backgroundColor: '#ffffff99',
-                    fontFamily: 'Roboto',
-                    textAlign: 'center',
-                    width: WIDTH - 100,
-                    height: 40,
-                    textAlignVertical: 'center',
-                    fontWeight: 'bold',
-                    opacity: 1
-                  }}
-                >
-                  {this.state.image
-                    ? 'Tap to choose another Image'
-                    : 'Tap Pick an Image from Camera Roll'}
-                </Text>
+                {this.state.data && (
+                  <Text
+                    style={{
+                      color: 'black',
+                      backgroundColor: '#ffffff99',
+                      fontFamily: 'Roboto',
+                      textAlign: 'center',
+                      width: WIDTH - 100,
+                      height: 40,
+                      textAlignVertical: 'center',
+                      fontWeight: 'bold',
+                      opacity: 1
+                    }}
+                  >
+                    Uploaded Image
+                  </Text>
+                )}
+                {!this.state.data && (
+                  <Text
+                    style={{
+                      color: 'black',
+                      backgroundColor: '#ffffff99',
+                      fontFamily: 'Roboto',
+                      textAlign: 'center',
+                      width: WIDTH - 100,
+                      height: 40,
+                      textAlignVertical: 'center',
+                      fontWeight: 'bold',
+                      opacity: 1
+                    }}
+                  >
+                    {this.state.image
+                      ? 'Tap to choose another Image'
+                      : 'Tap Pick an Image from Camera Roll'}
+                  </Text>
+                )}
               </TouchableOpacity>
-
               {this.state.data && (
-                <Text
-                  style={{
-                    textAlign: 'center',
-                    fontSize: 22,
-                    fontWeight: 'bold'
-                  }}
-                >{`Detected/Predicted Carcinogenic percentage : ${this.state.data}`}</Text>
+                <View>
+                  <Text
+                    style={{
+                      textDecorationLine: 'underline',
+                      fontWeight: 'bold',
+                      fontSize: 22,
+                      textAlign: 'left',
+                      marginBottom: 20,
+                      textAlign: 'center',
+                      color: '#444'
+                    }}
+                  >
+                    Summary:
+                  </Text>
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: 18
+                    }}
+                  >{`Carcinogenic Eye : ${(this.state.data * 100).toFixed(
+                    2
+                  )}%`}</Text>
+                  <Text
+                    style={{
+                      fontWeight: 'bold',
+                      fontSize: 18
+                    }}
+                  >
+                    Cancer Predicted :{' '}
+                    <Text
+                      style={{
+                        color: this.state.is_cancer == 'True' ? 'red' : 'green'
+                      }}
+                    >
+                      {this.state.is_cancer == 'True' ? 'Yes' : 'No'}
+                    </Text>
+                  </Text>
+                </View>
               )}
-              <TouchableOpacity onPress={() => this.getReport()}>
-                <Text
-                  style={{
-                    alignItems: 'center',
-                    textAlign: 'center',
-                    width: WIDTH - 100,
-                    fontWeight: 'bold',
-                    fontSize: 15,
-                    backgroundColor: '#404040',
-                    height: 50,
-                    paddingTop: 15,
-                    color: 'white',
-                    elevation: 1,
-                    borderRadius: 20
+              {!this.state.data && (
+                <TouchableOpacity onPress={() => this.getReport()}>
+                  <Text
+                    style={{
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      width: WIDTH - 100,
+                      fontWeight: 'bold',
+                      fontSize: 15,
+                      height: 50,
+                      paddingTop: 15,
+                      color: 'white',
+                      backgroundColor: '#404040',
+                      borderRadius: 10
+                    }}
+                  >
+                    Get Report
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {this.state.data && (
+                <TouchableOpacity
+                  onPress={() => this._handlePressButtonAsync()}
+                >
+                  <Text
+                    style={{
+                      alignItems: 'center',
+                      textAlign: 'center',
+                      width: WIDTH - 100,
+                      fontWeight: 'bold',
+                      fontSize: 15,
+                      height: 50,
+                      paddingTop: 15,
+                      color: 'white',
+                      backgroundColor: '#404040',
+                      borderRadius: 10
+                    }}
+                  >
+                    Download & View PDF
+                  </Text>
+                </TouchableOpacity>
+              )}
+              {!this.state.data && (
+                <TouchableOpacity
+                  onPress={() => {
+                    this.setState({
+                      scan: true
+                    });
                   }}
                 >
-                  Get Report
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                onPress={() => {
-                  this.setState({
-                    scan: true
-                  });
-                }}
-              >
-                <Text>Get Server URL</Text>
-              </TouchableOpacity>
+                  <Text>Set Server URL</Text>
+                </TouchableOpacity>
+              )}
+              {this.state.data && (
+                <TouchableOpacity
+                  onPress={() => {
+                    this.setState({
+                      text: null,
+                      data: null,
+                      type: 'no-data',
+                      image: false,
+                      imageSelect: null,
+                      isUploading: false,
+                      mainImage: false,
+                      base64send: null,
+                      b64: null,
+                      loading: false,
+                      hasCameraPermission: null,
+                      scan: false,
+                      img: null,
+                      report: null
+                    });
+                  }}
+                >
+                  <Text>Try Again?</Text>
+                </TouchableOpacity>
+              )}
               {this.state.scan && (
                 <BarCodeScanner
                   onBarCodeScanned={e => this.handleBarCodeScanned(e)}
