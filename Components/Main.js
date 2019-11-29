@@ -9,7 +9,8 @@ import {
   TextInput,
   Dimensions,
   TouchableOpacity,
-  ImageBackground
+  ImageBackground,
+  StyleSheet
 } from 'react-native';
 import { EvilIcons, Ionicons } from '@expo/vector-icons';
 
@@ -65,7 +66,11 @@ export default class Encrypter extends React.Component {
     });
 
     if (!result.cancelled) {
-      this.setState({ mainImage: true, image: result.uri });
+      if (this.state.ress !== result.uri) {
+        alert('Wrong Image selected');
+      } else {
+        this.setState({ mainImage: true, image: result.uri });
+      }
     }
   };
 
@@ -97,12 +102,13 @@ export default class Encrypter extends React.Component {
         }
       );
       await MediaLibrary.requestPermissionsAsync();
-      await MediaLibrary.createAssetAsync(
+      let ress = await MediaLibrary.createAssetAsync(
         FileSystem.documentDirectory + 'temp.png'
       );
       this.setState({
         type: 'decoding',
-        loading: false
+        loading: false,
+        ress: ress.uri
       });
     } catch (err) {
       this.setState({

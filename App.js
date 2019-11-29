@@ -46,14 +46,6 @@ const StatusBarHeight = Platform.select({
   default: 0
 });
 
-const AppNavigator = createStackNavigator({
-  Home: {
-    screen: App
-  }
-});
-
-export default createAppContainer(AppNavigator);
-
 class App extends React.Component {
   static navigationOptions = {
     title: 'Information Security Project'
@@ -108,3 +100,13 @@ const styles = StyleSheet.create({
     marginTop: StatusBarHeight
   }
 });
+
+const AppNavigator = createStackNavigator(
+  { Home: App },
+  {
+    headerLayoutPreset: 'center',
+    initialRouteName: 'Home'
+  }
+);
+
+export default createAppContainer(AppNavigator);
