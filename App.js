@@ -14,6 +14,8 @@ import { Asset } from 'expo-asset';
 import Encrypter from './Components/Main';
 import { Subtitle, Header, Body, Title, Toast } from 'native-base';
 import * as Font from 'expo-font';
+import { createAppContainer } from 'react-navigation';
+import { createStackNavigator } from 'react-navigation-stack';
 
 const X_WIDTH = 375;
 const X_HEIGHT = 812;
@@ -44,7 +46,19 @@ const StatusBarHeight = Platform.select({
   default: 0
 });
 
-export default class App extends React.Component {
+const AppNavigator = createStackNavigator({
+  Home: {
+    screen: App
+  }
+});
+
+export default createAppContainer(AppNavigator);
+
+class App extends React.Component {
+  static navigationOptions = {
+    title: 'Information Security Project'
+  };
+
   state = {
     isReady: false
   };
@@ -79,35 +93,6 @@ export default class App extends React.Component {
       >
         <StatusBar backgroundColor='#f1f1f1' barStyle='dark-content' />
         <View style={styles.container}>
-          <Header
-            style={{
-              backgroundColor: '#f1f1f1',
-              height: 50
-            }}
-          >
-            <Body
-              style={{
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-            >
-              <Title
-                style={{
-                  color: 'black'
-                }}
-              >
-                Steganography
-              </Title>
-              <Subtitle
-                style={{
-                  color: 'black'
-                }}
-              >
-                An Information Security Project
-              </Subtitle>
-            </Body>
-          </Header>
-
           <Encrypter />
         </View>
       </View>

@@ -22,6 +22,7 @@ import * as MediaLibrary from 'expo-media-library';
 import jiitLogo from '../assets/jiit.png';
 import imagePlaceholder from '../assets/preview.png';
 import wait from '../assets/wait.gif';
+import { BarCodeScanner } from 'expo-barcode-scanner';
 
 const WIDTH = Dimensions.get('window').width;
 const HEIGHT = Dimensions.get('window').height;
@@ -37,11 +38,16 @@ export default class Encrypter extends React.Component {
     mainImage: false,
     base64send: null,
     b64: null,
-    loading: false
+    loading: false,
+    scan: false
   };
   componentDidMount() {
     this.getPermissionAsync();
   }
+
+  handleBarCodeScanned = ({ type, data }) => {
+    this.setState({ scan: false, url: data });
+  };
 
   getPermissionAsync = async () => {
     if (Constants.platform.ios) {
@@ -73,7 +79,7 @@ export default class Encrypter extends React.Component {
     // formData.append("image", this.state.file)
 
     try {
-      let res = await axios.post('http://301eff05.ngrok.io/encode', formData);
+      let res = await axios.post(`${this.state.url}/encode`, formData);
       this.setState({
         b64: `data:image/png;base64,${res.data.image}`,
         data: res.data.key,
@@ -123,7 +129,7 @@ export default class Encrypter extends React.Component {
     formData.append('image', this.state.wb64);
 
     try {
-      let res = await axios.post('http://301eff05.ngrok.io/decode', formData);
+      let res = await axios.post(`${this.state.url}/decode`, formData);
       this.setState({
         data: res.data.key,
         image: null,
@@ -297,6 +303,31 @@ export default class Encrypter extends React.Component {
                 Click To Decode Image
               </Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                this.setState({
+                  scan: true
+                });
+              }}
+            >
+              <Text
+                style={{
+                  fontWeight: 'bold',
+                  fontSize: 18,
+                  color: 'gray',
+                  textAlign: 'center'
+                }}
+              >
+                Set URL
+              </Text>
+            </TouchableOpacity>
+
+            {this.state.scan && (
+              <BarCodeScanner
+                onBarCodeScanned={e => this.handleBarCodeScanned(e)}
+                style={StyleSheet.absoluteFillObject}
+              />
+            )}
           </View>
         </View>
       );
