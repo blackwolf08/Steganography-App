@@ -15,6 +15,7 @@ import { AntDesign, Ionicons } from '@expo/vector-icons';
 import { Asset } from 'expo-asset';
 import Encrypter from './Components/Main';
 import Details from './Components/Details';
+import MinorReport from './Components/MinorReport';
 import { Subtitle, Header, Body, Title, Toast, Left } from 'native-base';
 import * as Font from 'expo-font';
 import jiitLogo from './assets/jiit.png';
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
 });
 
 const AppNavigator = createStackNavigator(
-  { Home: App, Details: Details },
+  { Home: App, Details: Details, MinorReport: MinorReport },
   {
     headerLayoutPreset: 'center',
     initialRouteName: 'Home'

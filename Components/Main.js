@@ -47,14 +47,18 @@ export default class Encrypter extends React.Component {
     hasCameraPermission: null,
     scan: false,
     img: null,
-    report: null
+    report: null,
+    url: 'http://db6fc4ab.ngrok.io'
   };
 
   _handlePressButtonAsync = async () => {
     this.props.navigation.navigate('Details', {
-      uri: `${this.state.url}/getRecord?patient_name=${this.state.text}`,
+      uri: `${this.state.url}/getReport?patient_name=${this.state.text}`,
       name: this.state.text
     });
+  };
+  minorReport = async () => {
+    this.props.navigation.navigate('MinorReport');
   };
 
   componentDidMount() {
@@ -114,9 +118,13 @@ export default class Encrypter extends React.Component {
 
     try {
       let res = await axios.post(`${this.state.url}/detect`, formData);
-
+      let andf = parseFloat(`${res.data.prob}`);
+      if (`${res.data.is_cancer}` == 'false') {
+        andf = 100 - andf;
+      }
+      console.log(`${res.data.is_cancer}`, typeof `${res.data.is_cancer}`);
       this.setState({
-        data: parseFloat(`${res.data.prob}`),
+        data: andf,
         is_cancer: `${res.data.is_cancer}`,
         loading: false
       });
@@ -332,9 +340,7 @@ export default class Encrypter extends React.Component {
                       fontWeight: 'bold',
                       fontSize: 18
                     }}
-                  >{`Carcinogenic Eye : ${(this.state.data * 100).toFixed(
-                    2
-                  )}%`}</Text>
+                  >{`Carcinogenic Eye : ${this.state.data.toFixed(2)}%`}</Text>
                   <Text
                     style={{
                       fontWeight: 'bold',
@@ -344,10 +350,10 @@ export default class Encrypter extends React.Component {
                     Cancer Predicted :{' '}
                     <Text
                       style={{
-                        color: this.state.is_cancer == 'True' ? 'red' : 'green'
+                        color: this.state.is_cancer == 'true' ? 'red' : 'green'
                       }}
                     >
-                      {this.state.is_cancer == 'True' ? 'Yes' : 'No'}
+                      {this.state.is_cancer == 'true' ? 'Yes' : 'No'}
                     </Text>
                   </Text>
                 </View>
@@ -394,6 +400,21 @@ export default class Encrypter extends React.Component {
                   </Text>
                 </TouchableOpacity>
               )}
+              <TouchableOpacity
+                onPress={() => {
+                  this.minorReport();
+                }}
+              >
+                <Text
+                  style={{
+                    color: '#4286f4',
+                    fontWeight: 'bold',
+                    fontSize: 20
+                  }}
+                >
+                  View Minor Report
+                </Text>
+              </TouchableOpacity>
               {!this.state.data && (
                 <TouchableOpacity
                   onPress={() => {
@@ -402,7 +423,14 @@ export default class Encrypter extends React.Component {
                     });
                   }}
                 >
-                  <Text>Set Server URL</Text>
+                  <Text
+                    style={{
+                      color: 'gray',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    Set Server URL
+                  </Text>
                 </TouchableOpacity>
               )}
               {this.state.data && (
