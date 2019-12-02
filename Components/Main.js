@@ -10,7 +10,8 @@ import {
   Dimensions,
   TouchableOpacity,
   ImageBackground,
-  StyleSheet
+  StyleSheet,
+  Clipboard
 } from 'react-native';
 import { EvilIcons, Ionicons } from '@expo/vector-icons';
 
@@ -40,7 +41,8 @@ export default class Encrypter extends React.Component {
     base64send: null,
     b64: null,
     loading: false,
-    scan: false
+    scan: false,
+    _data: null
   };
   componentDidMount() {
     this.getPermissionAsync();
@@ -105,8 +107,8 @@ export default class Encrypter extends React.Component {
       let ress = await MediaLibrary.createAssetAsync(
         FileSystem.documentDirectory + 'temp.png'
       );
+
       this.setState({
-        type: 'decoding',
         loading: false,
         ress: ress.uri
       });
@@ -137,7 +139,7 @@ export default class Encrypter extends React.Component {
     try {
       let res = await axios.post(`${this.state.url}/decode`, formData);
       this.setState({
-        data: res.data.key,
+        _data: res.data.key,
         image: null,
         loading: false
       });
@@ -289,6 +291,37 @@ export default class Encrypter extends React.Component {
                 Upload and Encode to an Image
               </Text>
             </TouchableOpacity>
+            {this.state.data && (
+              <TouchableOpacity
+                onPress={() => {
+                  Clipboard.setString(this.state.data);
+                  alert('Copied to Clipboard');
+                }}
+              >
+                <Text
+                  style={{
+                    width: Dimensions.get('window').width,
+                    textAlign: 'center',
+                    color: '#4286f4',
+                    fontSize: 18,
+                    fontWeight: 'bold'
+                  }}
+                >
+                  {`Your Secret Key : ${this.state.data}`}
+                </Text>
+                <Text
+                  style={{
+                    width: Dimensions.get('window').width,
+                    textAlign: 'center',
+                    color: '#4286f4',
+                    fontSize: 14,
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Click to Copy
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               onPress={() => {
@@ -476,16 +509,16 @@ export default class Encrypter extends React.Component {
                 : 'Tap Pick an Image from Camera Roll'}
             </Text>
           </TouchableOpacity>
-          {this.state.data && (
+          {this.state._data && (
             <Text
               style={{
                 textAlign: 'center',
                 fontSize: 22,
                 fontWeight: 'bold'
               }}
-            >{`Decrypted String is : ${this.state.data}`}</Text>
+            >{`Decrypted String is : ${this.state._data}`}</Text>
           )}
-          {!this.state.data && (
+          {!this.state._data && (
             <TouchableOpacity onPress={() => this.decode()}>
               <Text
                 style={{
